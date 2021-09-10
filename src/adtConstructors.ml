@@ -129,6 +129,9 @@ let of_ocaml_case
                 Name.of_ident false ld_id
               ) in
           let* (record_params, new_typ_vars) = Type.record_args labeled_typs in
+          let* record_params = Monad.List.map
+              (fun typ -> Type.decode_var_tags new_typ_vars false typ)
+              record_params in
           let tag_typs = List.map (fun (_, kind) ->
               match kind with
               | Kind.Tag -> true
