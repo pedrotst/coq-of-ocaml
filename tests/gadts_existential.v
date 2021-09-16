@@ -1,8 +1,8 @@
 Require Import CoqOfOCaml.CoqOfOCaml.
 Require Import CoqOfOCaml.Settings.
 
-Inductive exp : vtag -> Set :=
-| E_Int : int -> exp int_tag.
+Inductive exp : swaddle -> Set :=
+| E_Int : int -> exp swaddled_int.
 
 (** Records for the constructor parameters *)
 Module ConstructorRecords_term.
@@ -21,10 +21,11 @@ Import ConstructorRecords_term.
 
 Reserved Notation "'term.T_constr".
 
-Inductive term : vtag -> Set :=
-| T_constr : forall {a : vtag}, 'term.T_constr a -> term a
+Inductive term : swaddle -> Set :=
+| T_constr : forall {a : swaddle}, 'term.T_constr a -> term a
 
-where "'term.T_constr" := (fun (t_a : vtag) => term.T_constr_skeleton (exp t_a)).
+where "'term.T_constr" :=
+  (fun (t_a : swaddle) => term.T_constr_skeleton (exp t_a)).
 
 Module term.
   Include ConstructorRecords_term.term.
@@ -59,13 +60,13 @@ Reserved Notation "'wrapper.W_exp".
 Reserved Notation "'wrapper.W_term".
 
 Inductive wrapper : Set :=
-| W_exp : forall {kind : vtag}, 'wrapper.W_exp kind -> wrapper
-| W_term : forall {kind : vtag}, 'wrapper.W_term kind -> wrapper
+| W_exp : forall {kind : swaddle}, 'wrapper.W_exp kind -> wrapper
+| W_term : forall {kind : swaddle}, 'wrapper.W_term kind -> wrapper
 
 where "'wrapper.W_exp" :=
-  (fun (t_kind : vtag) => wrapper.W_exp_skeleton (exp t_kind))
+  (fun (t_kind : swaddle) => wrapper.W_exp_skeleton (exp t_kind))
 and "'wrapper.W_term" :=
-  (fun (t_kind : vtag) => wrapper.W_term_skeleton (term t_kind)).
+  (fun (t_kind : swaddle) => wrapper.W_term_skeleton (term t_kind)).
 
 Module wrapper.
   Include ConstructorRecords_wrapper.wrapper.

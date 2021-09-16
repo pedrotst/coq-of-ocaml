@@ -46,7 +46,7 @@ let get_parameters (typs : t) : Name.t list =
       | _ -> None)
 
 let get_tag_varenv (typs : t) : VarEnv.t =
-  typs |> get_parameters |> List.map (fun typ -> (typ, Kind.Tag))
+  typs |> get_parameters |> List.map (fun typ -> (typ, Kind.Swaddle))
 
 let get_set_varenv (typs : t) : VarEnv.t =
   typs |> get_parameters |> List.map (fun typ -> (typ, Kind.Set))

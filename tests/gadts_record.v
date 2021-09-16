@@ -21,25 +21,24 @@ Import ConstructorRecords_term.
 
 Reserved Notation "'term.T_Rec".
 
-Inductive term : vtag -> Set :=
-| T_Int : int -> term int_tag
-| T_String : string -> term string_tag
-| T_Pair : forall {a b : vtag}, term a -> term b -> term (tuple_tag a b)
-| T_Rec : forall {a b : vtag},
-  'term.T_Rec a (decode_vtag b) -> term (tuple_tag a b)
+Inductive term : swaddle -> Set :=
+| T_Int : int -> term swaddled_int
+| T_String : string -> term swaddled_string
+| T_Pair : forall {a b : swaddle}, term a -> term b -> term (swaddled_tuple a b)
+| T_Rec : forall {a b : swaddle}, 'term.T_Rec a (unswaddle b) -> term b
 
 where "'term.T_Rec" :=
-  (fun (t_a : vtag) (t_b : Set) => term.T_Rec_skeleton (term t_a) t_b).
+  (fun (t_a : swaddle) (t_b : Set) => term.T_Rec_skeleton (term t_a) t_b).
 
 Module term.
   Include ConstructorRecords_term.term.
   Definition T_Rec := 'term.T_Rec.
 End term.
 
-Fixpoint interp {a : vtag} (function_parameter : term a) : decode_vtag a :=
+Fixpoint interp {a : swaddle} (function_parameter : term a) : unswaddle a :=
   match function_parameter with
   | T_Int n => n
   | T_String s => s
   | T_Pair p1 p2 => ((interp p1), (interp p2))
-  | T_Rec {| term.T_Rec.x := x; term.T_Rec.y := y |} => ((interp x), y)
+  | T_Rec {| term.T_Rec.x := x; term.T_Rec.y := y |} => y
   end.

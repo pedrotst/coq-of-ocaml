@@ -6,16 +6,16 @@ type t =
   | Cast
   | ForceGadt
   | GrabExistentials
-  | TaggedGadt
   | Implicit of string
   | MatchGadt
   | MatchGadtWithResult
+  | MatchSwaddle
   | MatchWithDefault
   | MutualAsNotation
   | Phantom
   | PlainModule
   | Struct of string
-  | TaggedMatch
+  | SwaddleGadt
   | TypAnnotation
 
 let of_payload_string
@@ -61,7 +61,6 @@ let of_attributes (attributes : Typedtree.attributes) : t list Monad.t =
     | "coq_cast" -> return (Some Cast)
     | "coq_force_gadt" -> return (Some ForceGadt)
     | "coq_grab_existentials" -> return (Some GrabExistentials)
-    | "coq_tag_gadt" -> return (Some TaggedGadt)
     | "coq_implicit" ->
       let error_message =
         "Give a value such as \"(A := unit)\" to define an implicit type" in
@@ -77,8 +76,9 @@ let of_attributes (attributes : Typedtree.attributes) : t list Monad.t =
       let error_message = "Give the name of the parameter to recurse on" in
       let* payload = of_payload_string error_message id attr_payload in
       return (Some (Struct payload))
+    | "coq_swaddle_gadt" -> return (Some SwaddleGadt)
+    | "coq_swaddle_match" -> return (Some MatchSwaddle)
     | "coq_type_annotation" -> return (Some TypAnnotation)
-    | "coq_tagged_match" -> return (Some TaggedMatch)
     | _ -> return None)
   )
 
@@ -148,18 +148,6 @@ let has_plain_module (attributes : t list) : bool =
     | _ -> false
   )
 
-let has_tagged_match (attributes : t list) : bool =
-  attributes |> List.exists (function
-    | TaggedMatch -> true
-    | _ -> false
-  )
-
-let has_tag_gadt (attributes : t list) : bool =
-  attributes |> List.exists (function
-    | TaggedGadt -> true
-    | _ -> false
-  )
-
 (** We compute the existence of this attribute outside of the monad for
    performance reasons. *)
 let has_precise_signature (attributes : Typedtree.attributes) : bool =
@@ -176,8 +164,21 @@ let get_structs (attributes : t list) : string list =
     | _ -> None
   )
 
+let has_swaddle_gadt (attributes : t list) : bool =
+  attributes |> List.exists (function
+    | SwaddleGadt -> true
+    | _ -> false
+  )
+
+let has_swaddle_match (attributes : t list) : bool =
+  attributes |> List.exists (function
+    | MatchSwaddle -> true
+    | _ -> false
+  )
+
 let has_typ_annotation (attributes : t list) : bool =
   attributes |> List.exists (function
     | TypAnnotation -> true
     | _ -> false
   )
+

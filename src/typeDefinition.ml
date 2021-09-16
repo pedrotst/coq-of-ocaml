@@ -109,7 +109,7 @@ module Inductive = struct
       let index_typs = List.init arity (fun i ->
           if i = arity - 1
           then Pp.set
-          else !^ "vtag")
+          else !^ "swaddle")
       in
       separate (space ^^ !^ "->" ^^ space) index_typs
       ^^ !^ ":=" ^-^
@@ -392,7 +392,7 @@ let of_ocaml (typs : type_declaration list) : t Monad.t =
     let (fields_names, fields_types, new_typ_args) = Util.List.split3 fields in
     let new_typ_args = VarEnv.merge new_typ_args in
     let typ_args = VarEnv.reorg typ_args new_typ_args in
-    let* fields_types = Monad.List.map (Type.decode_var_tags typ_args false) fields_types in
+    let* fields_types = Monad.List.map (Type.unswaddle typ_args false) fields_types in
     let fields = List.combine fields_names fields_types in
     return (Record (name, typ_args, fields, true))
   | [ { typ_id; typ_type = { type_kind = Type_open; _ }; _ } ] ->
@@ -420,7 +420,7 @@ let of_ocaml (typs : type_declaration list) : t Monad.t =
             "Polymorphic variant types are defined as standard algebraic types"
         | _ ->
           Type.of_typ_expr true Name.Map.empty typ >>= fun (typ, _, typ_args) ->
-          let* typ = Type.decode_var_tags typ_args false typ in
+          let* typ = Type.unswaddle typ_args false typ in
           return (
             constructor_records,
             (
@@ -448,7 +448,7 @@ let of_ocaml (typs : type_declaration list) : t Monad.t =
         let (fields_names, fields_types, new_typ_args) = Util.List.split3 fields in
         let new_typ_args = VarEnv.merge new_typ_args in
         let typ_args = VarEnv.reorg typ_args new_typ_args in
-        let* fields_types = Monad.List.map (Type.decode_var_tags typ_args false) fields_types in
+        let* fields_types = Monad.List.map (Type.unswaddle typ_args false) fields_types in
         return (
           constructor_records,
           (

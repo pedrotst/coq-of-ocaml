@@ -310,7 +310,7 @@ let rec of_expression (typ_vars : Name.t Name.Map.t) (e : expression)
     let is_gadt_match =
       Attribute.has_match_gadt attributes ||
       Attribute.has_match_gadt_with_result attributes in
-    let is_tagged_match = Attribute.has_tagged_match attributes in
+    let is_tagged_match = Attribute.has_swaddle_match attributes in
     let do_cast_results = Attribute.has_match_gadt_with_result attributes in
     let is_with_default_case = Attribute.has_match_with_default attributes in
     let is_grab_existentials = Attribute.has_grab_existentials attributes in
@@ -434,7 +434,7 @@ let rec of_expression (typ_vars : Name.t Name.Map.t) (e : expression)
     let is_gadt_match =
       Attribute.has_match_gadt attributes ||
       Attribute.has_match_gadt_with_result attributes in
-    let is_tagged_match = Attribute.has_tagged_match attributes in
+    let is_tagged_match = Attribute.has_swaddle_match attributes in
     let do_cast_results = Attribute.has_match_gadt_with_result attributes in
     let is_with_default_case = Attribute.has_match_with_default attributes in
     let is_grab_existential = Attribute.has_grab_existentials attributes in
@@ -741,8 +741,8 @@ and of_match :
               let* (cast, _, new_typ_vars) = Type.of_typ_expr true Name.Map.empty (c_lhs.pat_type) in
               let* (motive, _, new_typ_vars') = Type.of_typ_expr true Name.Map.empty (c_rhs.exp_type) in
               let new_typ_vars = VarEnv.union new_typ_vars new_typ_vars' in
-              let* cast = Type.decode_var_tags new_typ_vars false cast in
-              let* motive = Type.decode_var_tags new_typ_vars false motive in
+              let* cast = Type.unswaddle new_typ_vars false cast in
+              let* motive = Type.unswaddle new_typ_vars false motive in
               let (cast, args) = Type.normalize_constructor cast in
               (* Only generates dependent pattern matching for actual gadts *)
               if List.length args = 0 || Type.is_native_type cast
@@ -769,7 +769,7 @@ and of_match :
                   return (name, typ)
                )
                bound_vars >>= fun bound_vars ->
-             let env_has_tag = List.exists (fun (_, ki) -> ki = Kind.Tag) new_typ_vars in
+             let env_has_tag = List.exists (fun (_, ki) -> ki = Kind.Swaddle) new_typ_vars in
              let new_typ_vars =
                if is_gadt_match
                then new_typ_vars
@@ -777,11 +777,11 @@ and of_match :
                  let free_vars =
                    Type.local_typ_constructors_of_typs (List.map snd bound_vars) |> Name.Set.elements in
                  let tag_vars =
-                   new_typ_vars |> List.filter_map (fun (name, ki) -> if ki = Kind.Tag then Some name else None) in
+                   new_typ_vars |> List.filter_map (fun (name, ki) -> if ki = Kind.Swaddle then Some name else None) in
                  VarEnv.keep_only (free_vars @ tag_vars) new_typ_vars in
 
              let* bound_vars = Monad.List.map (fun (x,ty) ->
-                 let* ty = Type.decode_var_tags new_typ_vars false ty in
+                 let* ty = Type.unswaddle new_typ_vars false ty in
                  return (x, ty)
                ) bound_vars in
 
@@ -941,7 +941,7 @@ and import_let_fun
     ) >>= fun x ->
     let predefined_variables = List.map snd (Name.Map.bindings typ_vars) in
     Type.of_typ_expr true typ_vars vb_expr.exp_type >>= fun (e_typ, typ_vars, new_typ_vars) ->
-    let* e_typ = Type.decode_var_tags new_typ_vars false e_typ in
+    let* e_typ = Type.unswaddle new_typ_vars false e_typ in
     let new_typ_vars = VarEnv.remove_many predefined_variables new_typ_vars in
     match x with
     | None -> return None
@@ -1015,7 +1015,7 @@ and of_let
     begin match cases with
     | [{ vb_pat = p; vb_expr = e1; vb_attributes; _ }] when not is_function ->
       let* attributes = Attribute.of_attributes vb_attributes in
-      let has_tagged_match = Attribute.has_tagged_match attributes in
+      let has_tagged_match = Attribute.has_swaddle_match attributes in
       let* p_typ = Type.of_type_expr_without_free_vars (p.pat_type) in
       let* p = Pattern.of_pattern p in
       let* e1_typ = Type.of_type_expr_without_free_vars (e1.exp_type) in

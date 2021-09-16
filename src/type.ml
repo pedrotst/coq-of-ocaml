@@ -54,10 +54,10 @@ let rec tag_typ_constr_aux
   | Arrow (t1, t2) ->
     let* t1 = tag_ty t1 in
     let* t2 = tag_ty t2 in
-    let tag = Name.arrow_tag |> MixedPath.of_name  in
+    let tag = Name.swaddled_arrow |> MixedPath.of_name  in
     return (Apply (tag, List.combine [t1; t2] [false; false]))
   | Tuple ts ->
-    let tag = Name.tuple_tag |> MixedPath.of_name  in
+    let tag = Name.swaddled_tuple |> MixedPath.of_name  in
     begin match ts with
     | a :: b :: (_ :: _ as ts) ->
       let* t = tag_ty @@ Tuple [a; b] in
@@ -69,7 +69,7 @@ let rec tag_typ_constr_aux
       return (Apply (tag, List.combine ts bs))
     end
   | Apply (mpath, ts) ->
-    let tuple_tag = Name.tuple_tag |> MixedPath.of_name  in
+    let tuple_tag = Name.swaddled_tuple |> MixedPath.of_name  in
     let is_tuple_tag = mpath = tuple_tag in
     let is_existencial = match mpath with
       | PathName { path=[]; base } -> Name.Set.mem base existencial_typs
@@ -81,7 +81,7 @@ let rec tag_typ_constr_aux
       let (ts, _) = List.split ts in
       let* ts = Monad.List.map tag_ty ts in
       let arg_names = List.map tag_constructor_of ts in
-      let tag = Name.constr_tag |> MixedPath.of_name  in
+      let tag = Name.swaddled_constr |> MixedPath.of_name  in
       let name = (MixedPath.to_string_no_modules mpath) in
       let str_repr = name ^
                      (List.fold_left (fun acc ty -> acc ^ "_" ^ ty) "" arg_names) in
@@ -111,7 +111,7 @@ let rec non_phantom_typs (path : Path.t) (typs : Types.type_expr list)
     AdtParameters.of_ocaml typ_declaration.type_params >>= fun typ_params ->
     Attribute.of_attributes typ_declaration.type_attributes >>= fun typ_attributes ->
     let is_phantom = Attribute.has_phantom typ_attributes in
-    let is_tagged = Attribute.has_tag_gadt typ_attributes in
+    let is_tagged = Attribute.has_swaddle_gadt typ_attributes in
     if is_phantom then
       return (Some (typ_params |> List.map (fun _ -> false)))
     else if is_tagged then
@@ -544,7 +544,7 @@ let rec of_typ_expr
     let* source_name = Name.of_string false source_name in
     let* generated_name = Name.of_string false generated_name in
     let typ = if should_tag
-      then Kind.Tag
+      then Kind.Swaddle
       else Kind.Set in
     let (typ_vars, new_typ_vars, name) =
       if Name.Map.mem source_name typ_vars then (
@@ -589,7 +589,7 @@ let rec of_typ_expr
       let var = Variable var_name in
       let* new_typ_vars =
         if should_tag
-        then return [(var_name, Kind.Tag)]
+        then return [(var_name, Kind.Swaddle)]
         else return [(var_name, Kind.Set)]
       in
       return @@ (var, typ_vars, new_typ_vars)
@@ -750,8 +750,8 @@ and get_constr_arg_tags_env
   | { type_kind = Type_variant _; type_params = params; type_attributes = attributes; _ } ->
     let* attributes = Attribute.of_attributes attributes in
     let params = List.filter_map get_variable params in
-    if Attribute.has_tag_gadt attributes
-    then return @@ List.map (fun param -> (param, Kind.Tag)) params
+    if Attribute.has_swaddle_gadt attributes
+    then return @@ List.map (fun param -> (param, Kind.Swaddle)) params
     else return @@ List.map (fun param -> (param, Kind.Set)) params
   | { type_kind = Type_record (decls, _); _} ->
     let* (_, new_typ_vars) = record_args decls in
@@ -772,7 +772,7 @@ and get_constr_arg_tags
   match Env.find_type path env with
   | { type_kind = Type_variant _; type_params = params; type_attributes = attributes; _ } ->
     let* attributes = Attribute.of_attributes attributes in
-    if Attribute.has_tag_gadt attributes
+    if Attribute.has_swaddle_gadt attributes
     then return @@ tag_all_args params
     else return @@ tag_no_args params
   | { type_kind = Type_record (decls, _); type_params = params; _} ->
@@ -787,7 +787,7 @@ and get_constr_arg_tags
     let new_typ_vars = VarEnv.reorg typ_vars new_typ_vars in
     return @@ List.map (fun (_, kind) ->
         match kind with
-        | Kind.Tag -> true
+        | Kind.Swaddle -> true
         | _ -> false
       ) new_typ_vars
   | { type_manifest = None; type_kind = Type_abstract; type_params = params; _ } ->
@@ -796,7 +796,7 @@ and get_constr_arg_tags
     let* (_, _, new_typ_vars) = of_typ_expr true Name.Map.empty typ in
     return @@ List.map (fun (_, kind) ->
         match kind with
-        | Kind.Tag -> true
+        | Kind.Swaddle -> true
         | _ -> false
       ) new_typ_vars
   | _ | exception _ -> return []
@@ -853,7 +853,7 @@ and typed_existential_typs_of_typ
     | None -> return []
     | Some x ->
       let* x = Name.of_string false x in
-      return [(x, if should_tag then Kind.Tag else Kind.Set)]
+      return [(x, if should_tag then Kind.Swaddle else Kind.Set)]
     end
   | Tarrow (_, typ_x, typ_y, _) ->
     typed_existential_typs_of_typs [typ_x; typ_y] [should_tag; should_tag]
@@ -869,7 +869,7 @@ and typed_existential_typs_of_typ
         | _ -> return []
         | exception Not_found ->
           let* ident = Name.of_ident false ident in
-          let kind = if should_tag then Kind.Tag else Kind.Set in
+          let kind = if should_tag then Kind.Swaddle else Kind.Set in
           return [(ident, kind)]
         end
       | _ -> return [] in
@@ -914,38 +914,38 @@ and typed_existential_typs_of_typs
     )
     [] (List.combine typs tag_list)
 
-let rec decode_var_tags_aux
+let rec unswaddle_aux
     (typ_vars : VarEnv.t)
     (in_native : bool)
     (is_tag : bool)
     (typ : t)
   : t Monad.t =
-  let dec = decode_var_tags_aux typ_vars in_native is_tag in
+  let dec = unswaddle_aux typ_vars in_native is_tag in
   match typ with
   | Variable name ->
     begin
       if is_tag || in_native
       then return typ
       else match List.assoc_opt name typ_vars with
-        | Some Kind.Tag -> return @@ Apply (MixedPath.dec_name, [(typ, true)])
+        | Some Kind.Swaddle -> return @@ Apply (MixedPath.unswaddle, [(typ, true)])
         | _ -> return typ
     end
   | Arrow (t1, t2) ->
-    let* t1 = decode_var_tags_aux typ_vars in_native is_tag t1 in
-    let* t2 = decode_var_tags_aux typ_vars in_native is_tag t2 in
+    let* t1 = unswaddle_aux typ_vars in_native is_tag t1 in
+    let* t2 = unswaddle_aux typ_vars in_native is_tag t2 in
     return @@ Arrow (t1, t2)
   | Tuple ts ->
-    let* ts = Monad.List.map (decode_var_tags_aux typ_vars in_native is_tag) ts in
+    let* ts = Monad.List.map (unswaddle_aux typ_vars in_native is_tag) ts in
     return @@ Tuple ts
   | Apply (mpath, ts) ->
     begin match List.assoc_opt (MixedPath.get_pathName_base mpath) typ_vars with
-    | Some Kind.Tag when not (is_tag || in_native) ->
-      return @@ Apply (MixedPath.dec_name, [(typ, true)])
+    | Some Kind.Swaddle when not (is_tag || in_native) ->
+      return @@ Apply (MixedPath.unswaddle, [(typ, true)])
     | _ ->
       let (ts, bs) = List.split ts in
       let path_str = MixedPath.to_string mpath in
-      let in_native = List.mem path_str ["tuple_tag"; "arrow_tag"; "list_tag"; "option_tag"] in
-      let dec = decode_var_tags_aux typ_vars in_native in
+      let in_native = List.mem path_str ["swaddled_tuple"; "swaddled_arrow"; "swaddled_list"; "swaddled_option"] in
+      let dec = unswaddle_aux typ_vars in_native in
       let ts = List.combine ts bs in
       let* ts = Monad.List.map (fun (t, b) -> dec b t) ts in
       return @@ Apply (mpath, List.combine ts bs)
@@ -968,7 +968,7 @@ let decode_in_native
     match typ with
     | Apply (mpath, _) ->
       if List.mem (MixedPath.to_string mpath) natives
-      then return @@ Apply (MixedPath.dec_name, [(typ, true)])
+      then return @@ Apply (MixedPath.unswaddle, [(typ, true)])
       else return typ
     | _ -> return typ
 
@@ -980,7 +980,7 @@ let rec decode_only_variables
   | Variable x ->
     begin
       match List.assoc_opt x new_typ_vars with
-      | Some Kind.Tag -> Apply (MixedPath.dec_name, [(typ, true)])
+      | Some Kind.Swaddle -> Apply (MixedPath.unswaddle, [(typ, true)])
       | _ -> typ
     end
   | ForallModule (name, t1, t2) ->
@@ -1011,21 +1011,21 @@ let rec decode_only_variables
     let exis_tag = match mpath with
       | PathName { path=[]; base } ->
         begin match List.assoc_opt base new_typ_vars with
-          | Some Kind.Tag -> Some base
+          | Some Kind.Swaddle -> Some base
           | _ -> None
         end
       | _ -> None in
     (match exis_tag with
-    | Some name -> Apply (MixedPath.dec_name, [(Variable name, true)])
+    | Some name -> Apply (MixedPath.unswaddle, [(Variable name, true)])
     | None ->  Apply (mpath, List.combine ts bs))
   | _ -> typ
 
 
-let decode_var_tags
+let unswaddle
     (typ_vars : VarEnv.t)
     (is_tag : bool)
     (typ : t)
-  : t Monad.t = decode_var_tags_aux typ_vars false is_tag typ
+  : t Monad.t = unswaddle_aux typ_vars false is_tag typ
 
 
 let rec of_type_expr_variable (typ : Types.type_expr) : Name.t Monad.t =
@@ -1155,13 +1155,13 @@ let tag_notation (path : MixedPath.t) (typs : t list): t option =
   if not (MixedPath.is_constr_tag path) || List.length typs <> 2 then None
   else let typ = List.nth typs 1 in
     let name = tag_constructor_of typ in
-    let tagged_name = (Name.of_string_raw (name ^ "_tag")) in
+    let swaddled_name = Name.swaddled_name name in
     if List.mem name Name.native_types
-    then Some (Variable tagged_name)
+    then Some (Variable swaddled_name)
     else match typ with
       | Apply (_, ts) ->
         if List.mem name Name.native_type_constructors
-        then Some (Apply (MixedPath.of_name tagged_name, ts))
+        then Some (Apply (MixedPath.of_name swaddled_name, ts))
         else None
       | _ -> None
 

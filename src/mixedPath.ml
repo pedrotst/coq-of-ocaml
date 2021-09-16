@@ -20,8 +20,8 @@ type t =
 let of_name (name : Name.t) : t =
   PathName (PathName.of_name [] name)
 
-let dec_name : t =
-  PathName (Name.decode_vtag |> PathName.of_name [])
+let unswaddle : t =
+  PathName (Name.unswaddle |> PathName.of_name [])
 
 let projT1 : t =
   of_name (Name.of_string_raw "projT1")
@@ -34,7 +34,7 @@ let prim_proj_snd : t =
 
 let is_constr_tag : t -> bool = function
   | Access _ -> false
-  | PathName {base; _} -> Name.equal base Name.constr_tag
+  | PathName {base; _} -> Name.equal base Name.swaddled_constr
 
 let get_pathName_base : t -> Name.t = function
   | PathName {base; _} -> base

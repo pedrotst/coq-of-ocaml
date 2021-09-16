@@ -130,11 +130,11 @@ let of_ocaml_case
               ) in
           let* (record_params, new_typ_vars) = Type.record_args labeled_typs in
           let* record_params = Monad.List.map
-              (fun typ -> Type.decode_var_tags new_typ_vars false typ)
+              (fun typ -> Type.unswaddle new_typ_vars false typ)
               record_params in
           let tag_typs = List.map (fun (_, kind) ->
               match kind with
-              | Kind.Tag -> true
+              | Kind.Swaddle -> true
               | _ -> false
             ) new_typ_vars in
           let typ_args = new_typ_vars |> List.map (fun (name, _) ->
@@ -168,7 +168,7 @@ let of_ocaml_case
             )
           ))
     end >>= fun (param_typs, typ_vars, records) ->
-    let is_tagged = Attribute.has_tag_gadt attributes in
+    let is_tagged = Attribute.has_swaddle_gadt attributes in
     let is_gadt = Attribute.has_force_gadt attributes in
     let* (tagged_return, new_typ_vars) =
       match cd_res with
@@ -181,7 +181,7 @@ let of_ocaml_case
           | _ -> raise ([ty], new_typ_vars) Error.Category.Unexpected "Unexpected Type of Constructor"
         end
       | None ->
-        let kind = if is_tagged then Kind.Tag else Kind.Set in
+        let kind = if is_tagged then Kind.Swaddle else Kind.Set in
         let typ_args = AdtParameters.get_parameters defined_typ_params in
         let new_typ_vars = List.fold_left (fun map typ_param ->
             (typ_param, kind) :: map
@@ -189,8 +189,8 @@ let of_ocaml_case
         return ((List.map (fun v -> Type.Variable v) typ_args), List.rev new_typ_vars)
     in
     let typ_vars = VarEnv.union typ_vars new_typ_vars in
-    let* param_typs = Monad.List.map (Type.decode_var_tags typ_vars false) param_typs in
-    let* tagged_return = Monad.List.map (Type.decode_var_tags typ_vars true) tagged_return in
+    let* param_typs = Monad.List.map (Type.unswaddle typ_vars false) param_typs in
+    let* tagged_return = Monad.List.map (Type.unswaddle typ_vars true) tagged_return in
     let* untagged_return =
       AdtParameters.get_return_typ_params defined_typ_params cd_res in
     let res_typ_params = if is_tagged
