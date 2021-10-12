@@ -330,7 +330,7 @@ end
 type t =
   | Inductive of Inductive.t
   | Record of Name.t * VarEnv.t * (Name.t * Type.t) list * bool
-  | Synonym of Name.t * Name.t list * Type.t
+  | Synonym of Name.t * VarEnv.t * Type.t
   | ExtensibleTyp of Name.t
   | Abstract of Name.t * Name.t list
 
@@ -365,9 +365,7 @@ let of_ocaml (typs : type_declaration list) : t Monad.t =
         NotSupported
         "Polymorphic variant types are defined as standard algebraic types"
     | _ ->
-      Type.of_type_expr_without_free_vars typ >>= fun typ ->
-      let free_vars = Type.typ_args_of_typ typ in
-      let typ_args = filter_in_free_vars typ_args free_vars in
+      Type.of_typ_expr true Name.Map.empty typ >>= fun (typ, _, typ_args) ->
       return (Synonym (name, typ_args, typ))
     end
   | [ { typ_id; typ_type = { type_kind = Type_abstract; type_manifest = None; type_params; _ }; typ_attributes; _ } ] ->
@@ -510,11 +508,12 @@ let to_coq (with_args : bool) (def : t) : SmartPrint.t =
     nest (
       !^ "Definition" ^^ Name.to_coq name ^^
       Pp.args with_args ^^
-      begin match typ_args with
-      | [] -> empty
-      | _ -> parens (separate space (List.map Name.to_coq typ_args) ^^ !^ ":" ^^ Pp.set)
-      end ^^
-      nest (!^ ":" ^^ Pp.set) ^^
+      (* begin match typ_args with *)
+      (* | [] -> empty *)
+      (* | _ -> parens (separate space (List.map Name.to_coq typ_args) ^^ !^ ":" ^^ Pp.set) *)
+      (* end ^^ *)
+      (* nest (!^ ":" ^^ Pp.set) ^^ *)
+      Type.typ_vars_to_coq parens space space typ_args ^^
       !^ ":=" ^^ Type.to_coq None None value ^-^ !^ "."
     )
   | ExtensibleTyp name ->
