@@ -1,7 +1,7 @@
 Require Import CoqOfOCaml.CoqOfOCaml.
 Require Import CoqOfOCaml.Settings.
 
-Definition foo : Set := string.
+Definition foo := string.
 
 Reserved Notation "'double".
 Reserved Notation "'simple".

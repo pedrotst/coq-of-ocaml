@@ -11,7 +11,7 @@ Definition S := @S.signature.
 Arguments S {_}.
 
 Module M_infer.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition v : int := 12.
   
@@ -23,7 +23,7 @@ End M_infer.
 Definition M_infer := M_infer.module.
 
 Module M_definition.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition v : int := 12.
   
@@ -35,7 +35,7 @@ End M_definition.
 Definition M_definition : S (t := int) := M_definition.module.
 
 Module M_abstract.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition v : int := 12.
   
@@ -53,7 +53,7 @@ Module F_definition.
   }.
   Arguments Build_FArgs {_ _}.
   
-  Definition t `{FArgs} : Set := M1.(S.t) * M2.(S.t) * string.
+  Definition t `{FArgs} := M1.(S.t) * M2.(S.t) * string.
   
   Definition v `{FArgs} : M1.(S.t) * M2.(S.t) * string :=
     (M1.(S.v), M2.(S.v), "foo").
@@ -76,7 +76,7 @@ Module F_abstract.
   }.
   Arguments Build_FArgs {_ _}.
   
-  Definition t `{FArgs} : Set := M1.(S.t) * M2.(S.t) * string.
+  Definition t `{FArgs} := M1.(S.t) * M2.(S.t) * string.
   
   Definition v `{FArgs} : M1.(S.t) * M2.(S.t) * string :=
     (M1.(S.v), M2.(S.v), "foo").
@@ -105,7 +105,7 @@ Module M_with_functor.
     }.
     Arguments Build_FArgs {_}.
     
-    Definition t `{FArgs} : Set := M.(S.t) * int.
+    Definition t `{FArgs} := M.(S.t) * int.
     
     Definition v `{FArgs} : M.(S.t) * int := (M.(S.v), 12).
     

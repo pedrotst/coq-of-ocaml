@@ -23,7 +23,7 @@ Definition Target := @Target.signature.
 Arguments Target {_}.
 
 Module M.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition x : int := 12.
   
@@ -43,7 +43,7 @@ Module F.
   }.
   Arguments Build_FArgs {_}.
   
-  Definition t `{FArgs} : Set := X.(Source.t).
+  Definition t `{FArgs} := X.(Source.t).
   
   Definition y `{FArgs} : X.(Source.t) := X.(Source.x).
   
@@ -82,7 +82,7 @@ Module Sum.
     Y : Source (t := int);
   }.
   
-  Definition t `{FArgs} : Set := int.
+  Definition t `{FArgs} := int.
   
   Definition y `{FArgs} : int := Z.add X.(Source.x) Y.(Source.x).
   
@@ -119,7 +119,7 @@ Module WithSum.
 End WithSum.
 
 Module GenFun.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition y : int := 23.
   
@@ -148,7 +148,7 @@ Module LargeF.
   }.
   Arguments Build_FArgs {_}.
   
-  Definition t `{FArgs} : Set := X.(Source.t).
+  Definition t `{FArgs} := X.(Source.t).
   
   Definition y `{FArgs} : X.(Source.t) := X.(Source.x).
   

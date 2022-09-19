@@ -47,7 +47,7 @@ Inductive type_annot : Set :=
 Inductive field_annot : Set :=
 | Field_annot : string -> field_annot.
 
-Definition pair (a b : Set) : Set := a * b.
+Definition pair (a b : Set) := a * b.
 
 Inductive comb : Set :=
 | Comb : comb.
@@ -64,7 +64,7 @@ Inductive comparable_struct : Set :=
   comparable_struct * option field_annot -> option type_annot ->
   comparable_struct.
 
-Definition comparable_ty : Set := comparable_struct.
+Definition comparable_ty := comparable_struct.
 
 Module Boxed_set.
   Record signature {elt OPS_t : Set} : Set := {
@@ -78,7 +78,7 @@ End Boxed_set.
 Definition Boxed_set := @Boxed_set.signature.
 Arguments Boxed_set {_ _}.
 
-Definition set (elt : Set) : Set :=
+Definition set (elt : Set) :=
   {OPS_t : Set @ Boxed_set (elt := elt) (OPS_t := OPS_t)}.
 
 Module IncludedFoo.

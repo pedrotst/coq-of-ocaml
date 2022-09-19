@@ -70,7 +70,7 @@ Module F.
   }.
   Arguments Build_FArgs {_ _ _ _}.
   
-  Definition foo `{FArgs} : Set :=
+  Definition foo `{FArgs} :=
     V.(Validator.Commitment_t) * V.(Validator.Commitment_NestedLevel_t).
   
   Definition bar `{FArgs} : string :=

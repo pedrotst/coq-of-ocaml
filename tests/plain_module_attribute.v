@@ -11,7 +11,7 @@ Definition T := @T.signature.
 Arguments T {_}.
 
 Module M.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition to_string : int -> string := CoqOfOCaml.Stdlib.string_of_int.
 End M.

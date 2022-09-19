@@ -20,7 +20,7 @@ Definition Sig2 := @Sig2.signature.
 Arguments Sig2 {_}.
 
 Module M1.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition f {A : Set} (n : t) (m : A) : t * A := (n, m).
   
@@ -32,7 +32,7 @@ End M1.
 Definition M1 : Sig1 (t := _) := M1.module.
 
 Module M2.
-  Definition t : Set := int.
+  Definition t := int.
   
   Definition f {A : Set} (n : t) : list A := nil.
   
