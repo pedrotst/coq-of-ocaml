@@ -944,7 +944,7 @@ let rec unswaddle_aux
     | _ ->
       let (ts, bs) = List.split ts in
       let path_str = MixedPath.to_string mpath in
-      let in_native = List.mem path_str ["swaddled_tuple"; "swaddled_arrow"; "swaddled_list"; "swaddled_option"] in
+      let in_native = List.mem path_str ["G_tuple"; "G_arrow"; "G_list"; "G_option"] in
       let dec = unswaddle_aux typ_vars in_native in
       let ts = List.combine ts bs in
       let* ts = Monad.List.map (fun (t, b) -> dec b t) ts in

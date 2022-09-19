@@ -1,24 +1,24 @@
 Require Import String.
 Require Import Basics.
 
-Inductive swaddle : Type :=
-| swaddled_tconstr : string -> Set -> swaddle
-| swaddled_arrow : swaddle -> swaddle -> swaddle
-| swaddled_tuple : swaddle -> swaddle -> swaddle
+Inductive GSet : Type :=
+| G_tconstr : string -> Set -> GSet
+| G_arrow : GSet -> GSet -> GSet
+| G_tuple : GSet -> GSet -> GSet
 .
 
-Fixpoint unswaddle (s : swaddle) : Set :=
+Fixpoint decodeG (s : GSet) : Set :=
   match s with
-  | swaddled_tconstr s t => t
-  | swaddled_arrow t1 t2 => unswaddle t1 -> unswaddle t2
-  | swaddled_tuple t1 t2 =>
-    (unswaddle t1) * (unswaddle t2)
+  | G_tconstr s t => t
+  | G_arrow t1 t2 => decodeG t1 -> decodeG t2
+  | G_tuple t1 t2 =>
+    (decodeG t1) * (decodeG t2)
   end.
 
-Notation swaddled_int := (swaddled_tconstr "int" int).
-Notation swaddled_string := (swaddled_tconstr "string" string).
-Notation swaddled_bool := (swaddled_tconstr "bool" bool).
-Notation swaddled_unit := (swaddled_tconstr "unit" unit).
-Notation swaddled_float := (swaddled_tconstr "float" int).
-Notation swaddled_option A := (swaddled_tconstr "option" (option A)).
-Notation swaddled_list A := (swaddled_tconstr "list" (list A)).
+Notation G_int := (G_tconstr "int" int).
+Notation G_string := (G_tconstr "string" string).
+Notation G_bool := (G_tconstr "bool" bool).
+Notation G_unit := (G_tconstr "unit" unit).
+Notation G_float := (G_tconstr "float" int).
+Notation G_option A := (G_tconstr "option" (option A)).
+Notation G_list A := (G_tconstr "list" (list A)).

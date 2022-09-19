@@ -8,7 +8,7 @@ type t =
 let rec to_string (k : t) : string =
   match k with
   | Set -> "Set"
-  | Swaddle -> "swaddle"
+  | Swaddle -> "GSet"
   | Arrow (k1, k2) -> (to_string k1) ^ " -> " ^ (to_string k2)
 
 let to_coq (k : t) : SmartPrint.t =

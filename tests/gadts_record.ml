@@ -3,7 +3,7 @@ type 'a term =
   | T_String : string -> string term
   | T_Pair : 'a term * 'b term -> ('a * 'b) term
   | T_Rec : { x : 'a term; y : 'b } -> 'b term
-[@@coq_swaddle_gadt]
+[@@coq_gset_gadt]
 
 let rec interp : type a. a term -> a = function
   | T_Int n -> n

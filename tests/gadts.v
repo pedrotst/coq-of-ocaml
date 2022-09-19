@@ -23,15 +23,15 @@ Fixpoint proj_int (e : expr) : int :=
   | _ => unreachable_gadt_branch
   end.
 
-Inductive term : swaddle -> Set :=
-| T_Lift : forall {a : swaddle}, unswaddle a -> term a
-| T_Int : int -> term swaddled_int
-| T_String : string -> term swaddled_string
-| T_Sum : term swaddled_int -> term swaddled_int -> term swaddled_int
-| T_Pair : forall {a b : swaddle}, term a -> term b -> term (swaddled_tuple a b).
+Inductive term : GSet -> Set :=
+| T_Lift : forall {a : GSet}, decodeG a -> term a
+| T_Int : int -> term G_int
+| T_String : string -> term G_string
+| T_Sum : term G_int -> term G_int -> term G_int
+| T_Pair : forall {a b : GSet}, term a -> term b -> term (G_tuple a b).
 
-Fixpoint get_int (e : term swaddled_int) : int :=
-  match e in term t0 return t0 = swaddled_int -> int with
+Fixpoint get_int (e : term G_int) : int :=
+  match e in term t0 return t0 = G_int -> int with
   | T_Lift v => fun eq0 => ltac:(subst; exact v)
   | T_Int n => fun eq0 => ltac:(subst; exact n)
   | T_Sum e1 e2 =>
@@ -62,12 +62,12 @@ Import ConstructorRecords_exp.
 
 Reserved Notation "'exp.T_Record".
 
-Inductive exp : swaddle -> Set :=
-| T_Record : forall {a : swaddle} {b : Set}, 'exp.T_Record a b -> exp a
+Inductive exp : GSet -> Set :=
+| T_Record : forall {a : GSet} {b : Set}, 'exp.T_Record a b -> exp a
 
 where "'exp.T_Record" :=
-  (fun (t_a : swaddle) (t_b : Set) => exp.T_Record_skeleton (term t_a) t_b
-    (unswaddle t_a)).
+  (fun (t_a : GSet) (t_b : Set) => exp.T_Record_skeleton (term t_a) t_b
+    (decodeG t_a)).
 
 Module exp.
   Include ConstructorRecords_exp.exp.

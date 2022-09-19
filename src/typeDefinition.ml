@@ -109,7 +109,7 @@ module Inductive = struct
       let index_typs = List.init arity (fun i ->
           if i = arity - 1
           then Pp.set
-          else !^ "swaddle")
+          else !^ "GSet")
       in
       separate (space ^^ !^ "->" ^^ space) index_typs
       ^^ !^ ":=" ^-^

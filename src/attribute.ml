@@ -76,8 +76,8 @@ let of_attributes (attributes : Typedtree.attributes) : t list Monad.t =
       let error_message = "Give the name of the parameter to recurse on" in
       let* payload = of_payload_string error_message id attr_payload in
       return (Some (Struct payload))
-    | "coq_swaddle_gadt" -> return (Some SwaddleGadt)
-    | "coq_swaddle_match" -> return (Some MatchSwaddle)
+    | "coq_gset_gadt" -> return (Some SwaddleGadt)
+    | "coq_gset_match" -> return (Some MatchSwaddle)
     | "coq_type_annotation" -> return (Some TypAnnotation)
     | _ -> return None)
   )

@@ -1,12 +1,12 @@
 type _ exp =
   | E_Int : int -> int exp
-[@@coq_swaddle_gadt]
+[@@coq_gset_gadt]
 
 type 'a term =
   | T_constr : {
       b : 'a exp
     } -> 'a term
-[@@coq_swaddle_gadt]
+[@@coq_gset_gadt]
 
 type wrapper =
   (* | W_int : int -> wrapper *)

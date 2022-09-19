@@ -183,12 +183,12 @@ let suffix_by_include (name : t) : t =
 let suffix_by_skeleton (name : t) : t =
   Make (to_string name ^ "_skeleton")
 
-let swaddled_arrow  = of_string_raw "swaddled_arrow"
-let swaddled_tuple  = of_string_raw "swaddled_tuple"
-let swaddled_constr = of_string_raw "swaddled_tconstr"
-let unswaddle = of_string_raw "unswaddle"
+let swaddled_arrow  = of_string_raw "G_arrow"
+let swaddled_tuple  = of_string_raw "G_tuple"
+let swaddled_constr = of_string_raw "G_tconstr"
+let unswaddle = of_string_raw "decodeG"
 
-let swaddled_name (name : string) = of_string_raw ("swaddled_" ^ name)
+let swaddled_name (name : string) = of_string_raw ("G_" ^ name)
 
 (** Pretty-print a name to Coq. *)
 let to_coq (name : t) : SmartPrint.t =

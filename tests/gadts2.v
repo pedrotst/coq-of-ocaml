@@ -25,9 +25,9 @@ Module Test.
   
   Reserved Notation "'term.T_Pair".
   
-  Inductive term : swaddle -> Set :=
-  | T_Pair : forall {a b : swaddle},
-    'term.T_Pair (unswaddle a) (unswaddle b) -> term (swaddled_tuple a b)
+  Inductive term : GSet -> Set :=
+  | T_Pair : forall {a b : GSet},
+    'term.T_Pair (decodeG a) (decodeG b) -> term (G_tuple a b)
   
   where "'term.T_Pair" :=
     (fun (t_a t_b : Set) => term.T_Pair_skeleton int t_a t_b).
@@ -38,7 +38,7 @@ Module Test.
   End term.
 End Test.
 
-Fixpoint interp {a : swaddle} (t : Test.term a) : int :=
+Fixpoint interp {a : GSet} (t : Test.term a) : int :=
   let
     'Test.T_Pair {|
       Test.term.T_Pair.x1 := x1;
