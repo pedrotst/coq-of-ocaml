@@ -54,8 +54,8 @@ type t =
   | Apply of t * t option list (** An application. *)
   | Return of string * t (** Application specialized for a return operation. *)
   | InfixOperator of string * t * t
-    (** Application specialized for an infix operator. *)
-    (** An argument name, an optional type and a body. *)
+    (** Application specialized for an infix operator.
+        An argument name, an optional type and a body. *)
   | Function of Name.t * Type.t option * t
   | Functions of Name.t list * t (** An argument names and a body. *)
   | LetVar of string option * Name.t * Name.t list * t * t

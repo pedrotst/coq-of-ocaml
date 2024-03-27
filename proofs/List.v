@@ -160,14 +160,14 @@ Fixpoint split {A B : Type} (x : list (A * B)) : (list A) * (list B) :=
     end
   end.
 
-Fixpoint merge {A : Type} (cmp : A -> A -> Z) (l1 : list A) (l2 : list A)
+Fixpoint merge {A : Type} (cmp : A -> A -> Z)  (l1 : list A) (l2 : list A)
   : list A :=
   let fix merge_aux (l2 : list A) : list A :=
     match (l1, l2) with
     | ([], l2) => l2
     | (l1, []) => l1
     | (cons h1 t1, cons h2 t2) =>
-      if Stdlib.le (cmp h1 h2) 0 then
+      if BinIntDef.Z.leb (cmp h1 h2) 0 then
         cons h1 (merge cmp t1 l2)
       else
         cons h2 (merge_aux t2)

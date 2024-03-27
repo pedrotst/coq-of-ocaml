@@ -28,7 +28,7 @@ type arity_or_typ =
 let tag_constructor_of
     (typ : t) =
   match typ with
-  | Variable a -> "var"
+  | Variable _ -> "var"
   | Arrow _ -> "arrow"
   | Eq _ -> "eq"
   | Sum _ -> "sum"

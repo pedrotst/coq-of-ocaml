@@ -92,8 +92,8 @@ let ret_is_tagged : ret_typ -> bool = function
   | Variant _ -> false
   | Tagged _ -> true
 
-(** The constructors of an inductive type, either in a GADT or non-GADT form. *)
-(** [constructor_name]: forall [typ_vars], [param_typs] -> t [res_typ_params] *)
+(** The constructors of an inductive type, either in a GADT or non-GADT form.
+   [constructor_name]: forall [typ_vars], [param_typs] -> t [res_typ_params] *)
 type item = {
   constructor_name : Name.t;
   param_typs : Type.t list; (** The parameters of the constructor. *)
